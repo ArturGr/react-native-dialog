@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView, Platform, StyleSheet, View, TouchableOpacity } from "react-native";
 import AnimatedModal from "react-native-modal";
 
 const IOS_MODAL_ANIMATION = {
@@ -13,7 +13,8 @@ export default class DialogContainer extends React.PureComponent {
   static propTypes = {
     blurComponentIOS: PropTypes.node,
     children: PropTypes.node.isRequired,
-    visible: PropTypes.bool
+    visible: PropTypes.bool,
+    onRequestClose: PropTypes.func,
   };
 
   static defaultProps = {
@@ -22,7 +23,7 @@ export default class DialogContainer extends React.PureComponent {
 
   render() {
     const {
-      blurComponentIOS, children, visible, ...otherProps
+      blurComponentIOS, children, visible, onRequestClose, ...otherProps
     } = this.props;
     const titleChildrens = [];
     const descriptionChildrens = [];
@@ -62,29 +63,30 @@ export default class DialogContainer extends React.PureComponent {
         animationIn={Platform.OS === "ios" ? IOS_MODAL_ANIMATION : "zoomIn"}
         animationOut={"fadeOut"}
         {...otherProps}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={styles.container}
-        >
-          <View style={styles.content}>
-            {Platform.OS === "ios" && blurComponentIOS}
-            {Platform.OS === "ios" &&
-              !blurComponentIOS && <View style={styles.blur} />}
-            <View style={styles.header}>
-              {titleChildrens}
-              {descriptionChildrens}
+      ><TouchableOpacity activeOpacity={1} onPress={onRequestClose} style={styles.touchable} >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.container} 
+          >
+            <View style={styles.content}>
+              {Platform.OS === "ios" && blurComponentIOS}
+              {Platform.OS === "ios" &&
+                !blurComponentIOS && <View style={styles.blur} />}
+              <View style={styles.header}>
+                {titleChildrens}
+                {descriptionChildrens}
+              </View>
+              {otherChildrens}
+              {Boolean(buttonChildrens.length) && <View style={styles.footer}>
+                {buttonChildrens.map((x, i) =>
+                  React.cloneElement(x, {
+                    key: `dialog-button-${i}`
+                  })
+                )}
+              </View>}
             </View>
-            {otherChildrens}
-            {Boolean(buttonChildrens.length) && <View style={styles.footer}>
-              {buttonChildrens.map((x, i) =>
-                React.cloneElement(x, {
-                  key: `dialog-button-${i}`
-                })
-              )}
-            </View>}
-          </View>
-        </KeyboardAvoidingView>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
       </AnimatedModal>
     );
   }
@@ -96,12 +98,19 @@ const styles = StyleSheet.create({
     marginLeft: 0,
     marginRight: 0,
     marginTop: 0,
-    marginBottom: 0
+    marginBottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)'
+  },
+  touchable: {
+    flex: 1,
+    alignSelf: 'stretch',
   },
   container: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+    marginLeft: 32,
+    marginRight: 32,
   },
   blur: {
     position: "absolute",
@@ -113,28 +122,21 @@ const styles = StyleSheet.create({
   },
   content: Platform.select({
     ios: {
-      width: 270,
+      alignSelf: 'stretch',
       flexDirection: "column",
-      borderRadius: 13,
       overflow: "hidden"
     },
     android: {
       flexDirection: "column",
-      borderRadius: 3,
-      padding: 16,
-      margin: 16,
-      backgroundColor: "white",
       overflow: "hidden",
-      elevation: 4,
-      minWidth: 300
     }
   }),
   header: Platform.select({
     ios: {
-      margin: 18
+      margin: 0
     },
     android: {
-      margin: 12
+      margin: 0
     }
   }),
   footer: Platform.select({
@@ -143,13 +145,11 @@ const styles = StyleSheet.create({
       justifyContent: "space-between",
       borderTopColor: "#A9ADAE",
       borderTopWidth: StyleSheet.hairlineWidth,
-      height: 46
     },
     android: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "flex-end",
-      marginTop: 4
     }
   }),
   buttonSeparator: {
