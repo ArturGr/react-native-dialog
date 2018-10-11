@@ -64,14 +64,11 @@ export default class DialogContainer extends React.PureComponent {
         animationOut={"fadeOut"}
         {...otherProps}
       ><TouchableOpacity activeOpacity={1} onPress={onRequestClose} style={styles.touchable} >
-          <KeyboardAvoidingView
+          <View
             behavior={Platform.OS === "ios" ? "padding" : undefined}
-            style={styles.container} 
+            style={[styles.container, {backgroundColor: 'transparent'}]} 
           >
             <View style={styles.content}>
-              {Platform.OS === "ios" && blurComponentIOS}
-              {Platform.OS === "ios" &&
-                !blurComponentIOS && <View style={styles.blur} />}
               <View style={styles.header}>
                 {titleChildrens}
                 {descriptionChildrens}
@@ -85,7 +82,7 @@ export default class DialogContainer extends React.PureComponent {
                 )}
               </View>}
             </View>
-          </KeyboardAvoidingView>
+          </View>
         </TouchableOpacity>
       </AnimatedModal>
     );
